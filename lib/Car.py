@@ -9,7 +9,6 @@ class Sample:
     def __init__(self, position: float, weight: float) -> None:
         self.normalPos = position
         self.weight = weight
-        # self.data = 0.
         self.otherPos = 0  # 记录旧数据
 
     def centerPoint(self, image: np.ndarray, mode):
@@ -47,10 +46,12 @@ class Sample:
         Height = image.shape[0]
         Width = image.shape[1]
         if mode == self.ROW_MODE:
-            cv2.circle(image, (int(self.otherPos), int(self.normalPos * Height)),
+            cv2.circle(image,
+                       (int(self.otherPos), int(self.normalPos * Height)),
                        radius, color, circlewidth)
         elif mode == self.COLUMN_MODE:
-            cv2.circle(image, (int(self.normalPos * Width), int(self.otherPos)),
+            cv2.circle(image,
+                       (int(self.normalPos * Width), int(self.otherPos)),
                        radius, color, circlewidth)
 
     def drawLine(self,
@@ -69,12 +70,12 @@ class Sample:
                      (int(self.normalPos * Width), Height), color, lineWidth)
 
 
-def getDeltaDistance(frame: np.ndarray,
-                     sampleList: list,
-                     shifting=0.,
-                     mode=0,
-                     ifDraw=False,
-                     ifPrint=False) -> int:
+def getDistance(frame: np.ndarray,
+                sampleList: list,
+                shifting=0.,
+                mode=0,
+                ifDraw=False,
+                ifPrint=False) -> int:
     """
     获取位置偏移量作为反馈量\\
     第一个参数为已经二值化的待处理帧(引导线处理为255，其他部分处理为0)，第二个参数作为归一化后的y轴采样位置和对应权重\\
@@ -100,9 +101,11 @@ def getDeltaDistance(frame: np.ndarray,
         result += delta
 
     if ifDraw:
+        img = frame.copy()
         for sample in sampleList:
-            sample.drawLine(frame, mode)
-            sample.drawPoint(frame, mode)
+            sample.drawLine(img, mode)
+            sample.drawPoint(img, mode)
+        cv2.imshow(getDistance.__name__, img)
 
     if ifPrint:
         print('Delta Distance: ', int(result))
@@ -110,5 +113,31 @@ def getDeltaDistance(frame: np.ndarray,
     return int(result)
 
 
-# def getLineSlope(frame: np.ndarray, sampleList, ifPrint=False, ifDraw=False):
-#     "点集拟合直线，并计算其方向向量的水平分量、竖直分量"
+def getLineSlope(frame: np.ndarray,
+                 sampleList,
+                 mode,
+                 ifPrint=False,
+                 ifDraw=False):
+    "点集拟合直线，并计算其方向向量的水平分量、竖直分量"
+    point = []
+    sam: Sample
+    for sam in sampleList:
+        point.append(sam.centerPoint(frame, mode))
+    point = np.array(point)
+
+    output = cv2.fitLine(point, cv2.DIST_L2, 0, 0.01, 0.01)
+
+    if ifPrint:
+        print('X-component = %.2f, Y-component = %.2f' %
+              (output[0], output[1]))
+
+    if ifDraw:
+        img = frame.copy()
+        k = output[1] / output[0]
+        (x, y) = int(output[2]), int(output[3])
+        dx = 200
+        dy = int(k * dx)
+        cv2.line(img, (x, y), (x + dx, y + dy), 130, 3)
+        cv2.imshow(getLineSlope.__name__, img)
+
+    return output[0], output[1]

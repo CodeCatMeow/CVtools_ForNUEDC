@@ -1,3 +1,5 @@
+# -*- encoding:utf-8 -*-
+
 import serial
 
 
@@ -11,20 +13,41 @@ class PiSerial(serial.Serial):
             self.open()
         self.flushInput()
 
-    def SerialSend(self, data: str, ifPrint=False):
+    def serialSend(self, data: str, ifPrint=False):
         "发送信息到串口"
         if ifPrint:
             print(data)
         self.write(data.encode('ascii'))
 
-    def SerialRead(self, ifPrint=False) -> str:
-        "从串口接收信息（非阻塞），无信息return none"
+    def serialRead(self, ifPrint=False) -> str:
+        "从串口接收信息（非阻塞），无信息return none，多字符存在接收不全的情况"
         recv = self.inWaiting()
         if recv > 0:
-            data = self.read(recv)
+            data = self.read(recv).decode('ascii', 'ignore')
             if ifPrint:
-                print(data.decode('ascii', 'ignore'))
-            return data.decode('ascii', 'ignore')
+                print(data)
+            return data
         else:
             return None
-            
+
+    def serialReadStr(self, Start='(', End=')', ifPrint=False):
+        "从串口接收str，使用起始符和结束符以确保不会丢包，未接到内容返回None，非阻塞"
+        data = self.serialRead()
+        if data is not None:
+            con = data.partition(Start)[2]  # 起始符后面的部分
+            if con == '':
+                return None  # 未接到有效数据
+            else:
+                if con.find(End) == -1:  # 未找到结束符
+                    data = con
+                    while data.find(End) == -1:
+                        data = self.serialRead()
+                        if data is None:
+                            continue
+                    other = data.partition(End)[0]
+                    con += other
+                else:
+                    con = con.partition(End)[0]
+                if ifPrint:
+                    print(con)
+                return con
