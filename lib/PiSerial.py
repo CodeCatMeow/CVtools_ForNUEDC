@@ -1,4 +1,6 @@
-# -*- encoding:utf-8 -*-
+"""
+树莓派与MCU的串口通信与字符串接收
+"""
 
 import serial
 
@@ -33,7 +35,9 @@ class PiSerial(serial.Serial):
     def serialReadStr(self, Start='(', End=')', ifPrint=False):
         "从串口接收str，使用起始符和结束符以确保不会丢包，未接到内容返回None，非阻塞"
         data = self.serialRead()
-        if data is not None:
+        if data is None:
+            pass
+        else:
             con = data.partition(Start)[2]  # 起始符后面的部分
             if con == '':
                 return None  # 未接到有效数据

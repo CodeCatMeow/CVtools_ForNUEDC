@@ -1,29 +1,12 @@
 import cv2
 
+from lib import Video
+
+
 WIDTH = 640
 HEIGHT = 480
 point = [[0, 0], [0, 0]]
 frame = cv2.VideoCapture()
-
-
-def CaptureInit(width: int = 640,
-                height: int = 480,
-                PI_MODE=True) -> cv2.VideoCapture:
-    "摄像头配置和打开"
-    if PI_MODE:
-        capture = cv2.VideoCapture(0)
-    else:
-        capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-    capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-    capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-    fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-    capture.set(cv2.CAP_PROP_FOURCC, fourcc)
-    capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
-    cv2.namedWindow('video', cv2.WINDOW_KEEPRATIO)
-    cv2.setMouseCallback("video", getMouse)
-
-    return capture
 
 
 def getMouse(event, x, y, flags, param):
@@ -50,8 +33,10 @@ def getMouse(event, x, y, flags, param):
         print()
 
 
-cap = CaptureInit()
+cap = Video.CaptureInit()
 
+cv2.namedWindow('video', cv2.WINDOW_AUTOSIZE)
+cv2.setMouseCallback("video", getMouse)
 while True:
     _, frame = cap.read()
 

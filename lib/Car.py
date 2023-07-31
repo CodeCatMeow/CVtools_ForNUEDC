@@ -1,38 +1,103 @@
+"""
+车辆循迹常用函数
+"""
+
 import cv2
 import numpy as np
 
 
 class Sample:
-    ROW_MODE = 0
-    COLUMN_MODE = 1
+    SAMPLE_ROW = 0
+    SAMPLE_COLUMN = 1
 
-    def __init__(self, position: float, weight: float) -> None:
-        self.normalPos = position
+    VALUE_KEEPOLD = 0
+    VALUE_NOTKEEPOLD = 1
+
+    def __init__(self,
+                 position: float,
+                 weight: float,
+                 *,
+                 maxRatio=1.,
+                 minRatio=0.) -> None:
+        self.position = position
         self.weight = weight
-        self.otherPos = 0  # 记录旧数据
+        self.value = 0  # 记录目的数据
+        self.existence = False
+        self.ratioUpper = maxRatio
+        self.ratioLower = minRatio
 
-    def centerPoint(self, image: np.ndarray, mode):
-        "计算采样行/列的中心点（白色部分）,仅适用于单通道图像"
+    def checkBeing(self, image: np.ndarray, samplizeMode=SAMPLE_ROW) -> bool:
+        "检查图像采样位置是否存在有效值"
         Height = image.shape[0]  # size[0]为高度
         Width = image.shape[1]  # size[0]为高度
-        if mode == self.ROW_MODE:  # 行采样
-            y = int(Height * self.normalPos) - 1
+        if samplizeMode == self.SAMPLE_ROW:  # 行采样
+            y = int(Height * self.position) - 1
             row = image[y, :]
             index = np.nonzero(row)
-            if index[0].size == 0:
-                x = self.otherPos
+            if index[0].size == 0:  # 若未检测到
+                self.existence = False
+                return False
             else:
-                x = int(np.mean(index))
-                self.otherPos = x
+                self.existence = True
+                return True
         else:
-            x = int(Width * self.normalPos) - 1
+            x = int(Width * self.position) - 1
             column = image[:, x]
             index = np.nonzero(column)
-            if index[0].size == 0:
-                y = self.otherPos
+            if index[0].size == 0:  # 若未检测到
+                self.existence = False
+                return False
             else:
+                self.existence = True
+                return True
+
+    def centerPoint(self,
+                    image: np.ndarray,
+                    samplizeMode=SAMPLE_ROW,
+                    valueHandleMode=VALUE_NOTKEEPOLD):
+        "计算采样行/列的中心点（白色部分）,仅适用于单通道图像"
+        Height = image.shape[0]  # size[0]为高度
+        Width = image.shape[1]  # size[1]为宽度
+        if samplizeMode == self.SAMPLE_ROW:  # 行采样
+            y = int(Height * self.position) - 1
+            row = image[y, :]
+            index = np.nonzero(row)
+            lengthUpper = int(self.ratioUpper * Width)
+            lengthLower = int(self.ratioLower * Width)
+            if index[0].size <= lengthLower or index[
+                    0].size >= lengthUpper:  # 若未检测到或者检测处于范围之外
+                self.existence = False
+                if valueHandleMode == self.VALUE_NOTKEEPOLD:
+                    x = int(Width / 2)
+                    self.value = x
+                elif valueHandleMode == self.VALUE_KEEPOLD:
+                    x = self.value
+                else:
+                    return None
+            else:  # 检测到
+                self.existence = True
+                x = int(np.mean(index))
+                self.value = x
+        else:
+            x = int(Width * self.position) - 1
+            column = image[:, x]
+            index = np.nonzero(column)
+            lengthUpper = int(self.ratioUpper * Height)
+            lengthLower = int(self.ratioLower * Height)
+            if index[0].size <= lengthLower or index[
+                    0].size >= lengthUpper:  # 若未检测到或者检测处于范围之外
+                self.existence = False
+                if valueHandleMode == self.VALUE_NOTKEEPOLD:
+                    y = int(Height / 2)
+                    self.value = y
+                elif valueHandleMode == self.VALUE_KEEPOLD:
+                    y = self.value
+                else:
+                    return None
+            else:
+                self.existence = True
                 y = int(np.mean(index))
-                self.otherPos = y
+                self.value = y
 
         return (x, y)
 
@@ -45,13 +110,11 @@ class Sample:
         "绘出采样点"
         Height = image.shape[0]
         Width = image.shape[1]
-        if mode == self.ROW_MODE:
-            cv2.circle(image,
-                       (int(self.otherPos), int(self.normalPos * Height)),
+        if mode == self.SAMPLE_ROW:
+            cv2.circle(image, (int(self.value), int(self.position * Height)),
                        radius, color, circlewidth)
-        elif mode == self.COLUMN_MODE:
-            cv2.circle(image,
-                       (int(self.normalPos * Width), int(self.otherPos)),
+        elif mode == self.SAMPLE_COLUMN:
+            cv2.circle(image, (int(self.position * Width), int(self.value)),
                        radius, color, circlewidth)
 
     def drawLine(self,
@@ -62,18 +125,20 @@ class Sample:
         "绘出采样行"
         Height = image.shape[0]
         Width = image.shape[1]
-        if mode == self.ROW_MODE:
-            cv2.line(image, (0, int(self.normalPos * Height)),
-                     (Width, int(self.normalPos * Height)), color, lineWidth)
-        elif mode == self.COLUMN_MODE:
-            cv2.line(image, (int(self.normalPos * Width), 0),
-                     (int(self.normalPos * Width), Height), color, lineWidth)
+        if mode == self.SAMPLE_ROW:
+            cv2.line(image, (0, int(self.position * Height)),
+                     (Width, int(self.position * Height)), color, lineWidth)
+        elif mode == self.SAMPLE_COLUMN:
+            cv2.line(image, (int(self.position * Width), 0),
+                     (int(self.position * Width), Height), color, lineWidth)
 
 
 def getDistance(frame: np.ndarray,
                 sampleList: list,
                 shifting=0.,
-                mode=0,
+                samplizeMode=Sample.SAMPLE_ROW,
+                valueHandleMode=Sample.VALUE_NOTKEEPOLD,
+                *,
                 ifDraw=False,
                 ifPrint=False) -> int:
     """
@@ -90,21 +155,21 @@ def getDistance(frame: np.ndarray,
     # 计算每个采样处的偏移量并加权
     sample: Sample
     for sample in sampleList:
-        sample.centerPoint(frame, mode)
+        sample.centerPoint(frame, samplizeMode, valueHandleMode)
         # 计算基准位置
-        if mode == Sample.ROW_MODE:
+        if samplizeMode == Sample.SAMPLE_ROW:
             reference = int(Width * (0.5 + shifting))
         else:
             reference = int(Height * (0.5 + shifting))
 
-        delta = sample.weight * (sample.otherPos - reference)
+        delta = sample.weight * (sample.value - reference)
         result += delta
 
     if ifDraw:
         img = frame.copy()
         for sample in sampleList:
-            sample.drawLine(img, mode)
-            sample.drawPoint(img, mode)
+            sample.drawLine(img, samplizeMode)
+            sample.drawPoint(img, samplizeMode)
         cv2.imshow(getDistance.__name__, img)
 
     if ifPrint:
@@ -115,14 +180,15 @@ def getDistance(frame: np.ndarray,
 
 def getLineSlope(frame: np.ndarray,
                  sampleList,
-                 mode,
+                 samplizeMode=Sample.SAMPLE_ROW,
+                 valueHandleMode=Sample.VALUE_NOTKEEPOLD,
                  ifPrint=False,
                  ifDraw=False):
     "点集拟合直线，并计算其方向向量的水平分量、竖直分量"
     point = []
     sam: Sample
     for sam in sampleList:
-        point.append(sam.centerPoint(frame, mode))
+        point.append(sam.centerPoint(frame, samplizeMode, valueHandleMode))
     point = np.array(point)
 
     output = cv2.fitLine(point, cv2.DIST_L2, 0, 0.01, 0.01)

@@ -1,33 +1,20 @@
 import cv2
 import numpy as np
 
+from lib import Video
+
+
 WIDTH = 640
 HEIGHT = 480
 MouseXY = list()
-M = np.array([[ 1.06529793e+00 ,5.74352066e-01,-8.49011963e+01],
- [ 7.56745491e-02  ,2.15384700e+00 , 1.45244346e+01],
- [ 1.31131787e-04 , 2.22461078e-03 , 1.00000000e+00]])
-M = None
+M = np.array([[1.06529793e+00, 5.74352066e-01, -8.49011963e+01],
+              [7.56745491e-02, 2.15384700e+00, 1.45244346e+01],
+              [1.31131787e-04, 2.22461078e-03, 1.00000000e+00]])
 
-
-def CaptureInit(width: int = 640,
-                height: int = 480,
-                PI_MODE=True) -> cv2.VideoCapture:
-    "摄像头配置和打开"
-    if PI_MODE:
-        capture = cv2.VideoCapture(0)
-    else:
-        capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-    capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-    capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-    fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-    capture.set(cv2.CAP_PROP_FOURCC, fourcc)
-    capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
-    cv2.namedWindow('video', cv2.WINDOW_KEEPRATIO)
-    cv2.setMouseCallback("video", getMouse)
-
-    return capture
+height_after = 200
+width_after = 200
+rec_X = 200
+rec_Y = 200
 
 
 def getMouse(event, x, y, flags, param):
@@ -57,18 +44,21 @@ def orderPoints(pts):
 
 
 if __name__ == '__main__':
-    cap = CaptureInit()
+    cap = Video.CaptureInit()
+    cv2.namedWindow('video', cv2.WINDOW_AUTOSIZE)
+    cv2.setMouseCallback("video", getMouse)
 
     while True:
         _, frame = cap.read()
 
-        #if M is None:
         if len(MouseXY) == 4:
             srcM = orderPoints(np.array(list(map(lambda x: x[0], MouseXY))))
-            dstM = orderPoints(np.array([(188, 151), (188, 151+210), (188+136, 151), (188+136, 151+210)]))
+            dstM = orderPoints(
+                np.array([(rec_X, rec_Y), (rec_X, rec_Y + height_after), (rec_X + width_after, rec_Y),
+                          (rec_X + width_after, rec_Y + height_after)]))
             M = cv2.getPerspectiveTransform(srcM, dstM)
             print(M)
-            MouseXY.clear()
+            # MouseXY.clear()
 
         for point in MouseXY:
             cv2.circle(frame, point[0], 2, (255, 0, 0), -1)

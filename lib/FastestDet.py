@@ -1,9 +1,13 @@
+"""
+应用FastestDet神经网络进行目标识别
+"""
+
 import os
 
 import cv2
 import numpy as np
 
-from ROI import ROIArea
+from ROI import ROI
 
 
 def sigmoid(x):
@@ -38,7 +42,7 @@ class DetOutput:
 
     def actualize(self, image: np.ndarray):
         "获取检测结果在image中的实际坐标，返回Tuple（中心坐标、左上坐标、右下坐标）"
-        imageHeight= image.shape[0]
+        imageHeight = image.shape[0]
         imageWidth = image.shape[1]
         cxa = int(self.cx * imageHeight)
         x1a = int(self.x1 * imageHeight)
@@ -214,12 +218,13 @@ class FastestDet:
                 output.draw(image)
         return self.outputlist
 
-    def screenDetOutput(self, ROI: ROIArea) -> list:
+    def screenDetOutput(self, ROI: ROI) -> list:
         "筛除重合的检测结果中心坐标处于ROI之外的检测结果，并将结果返回（本函数对结果列表本身操作）"
         index = list()  # 需要删除的检测结果的索引
 
         for i in range(0, len(self.outputlist)):
-            if not ROI.isInside((self.outputlist[i].cx, self.outputlist[i].cy)):
+            if not ROI.isInside(
+                (self.outputlist[i].cx, self.outputlist[i].cy)):
                 index.append(i)
 
         index.sort(reverse=True)
