@@ -203,7 +203,7 @@ class FastestDet:
                                     x[5]), output))
 
     def putout(self, image: np.ndarray) -> list:
-        "输出检测结果，输入待测帧，输出结果为元素为DetOutput类的列表，已经过后处理和预处理"
+        "输出检测结果，输入待测帧，输出结果为元素为DetOutput类的列表，已经经过后处理和预处理"
         # 模型推理
         self.net.setInput(self.__imageFormat(image))
         featureMap = self.net.forward(

@@ -1,3 +1,6 @@
+"""
+工具：使用带有滑块的窗口对相机参数进行实时调整
+"""
 
 import cv2
 import numpy as np
@@ -5,8 +8,8 @@ import numpy as np
 from lib import Video
 
 
-def nothing(x):
-    pass
+# def nothing(x):
+#     pass
 
 
 def CaptureInit(width: int = 640,
@@ -23,7 +26,7 @@ def CaptureInit(width: int = 640,
     # capture.set(cv2.CAP_PROP_FOURCC, fourcc)
     # capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
-    cv2.namedWindow('video', cv2.WINDOW_KEEPRATIO)
+    # cv2.namedWindow('video', cv2.WINDOW_KEEPRATIO)
     # cv2.setMouseCallback("video", getMouse)
 
     return capture
@@ -31,20 +34,19 @@ def CaptureInit(width: int = 640,
 
 if __name__ == '__main__':
     cap = CaptureInit(PI_MODE=False)
+    video = Video.TrackWindow('video', 'value', 50, 100)
     Video.printVideoPara(cap)
 
-    cv2.createTrackbar('value', 'video', 50, 100, nothing)
     while True:
-        contrast = cv2.getTrackbarPos('value', 'video')
+        contrast = video.getValue()
 
         if contrast != cap.get(cv2.CAP_PROP_CONTRAST):
-            print(cap.isOpened(), cap.get(cv2.CAP_PROP_CONTRAST), contrast)
+            # print(cap.isOpened(), cap.get(cv2.CAP_PROP_CONTRAST), contrast)
             cap.set(cv2.CAP_PROP_CONTRAST, contrast)
 
         _, frame = cap.read()
-        
-        cv2.imshow('video', frame)
-        # cv2.imshow('frame', frame)
+
+        video.show(frame)
 
         content = cv2.waitKey(1) & 0xff
         if content == 27:  # Esc

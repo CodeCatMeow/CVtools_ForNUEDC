@@ -10,12 +10,12 @@ class ROI:
     "从图像中截取感兴趣区域，使用归一化坐标和长宽进行定义，得到具体坐标和长宽"
 
     def __init__(self,
-                 image: np.ndarray,
-                 x1: float,
+                 image: np.ndarray,  # 图像
+                 x1: float,  # 归一化坐上坐标
                  y1: float,
-                 width: float,
+                 width: float,  # 长宽
                  height: float,
-                 ifExist=True):
+                 ifExist=True):  # 是否暂存图像数据
         "ROI类的实例化，使用归一化的左上点横纵坐标和归一化的长宽"
         imageHeight = image.shape[0]
         imageWidth = image.shape[1]

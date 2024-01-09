@@ -1,3 +1,7 @@
+"""
+工具：使用鼠标拖动确定ROI区域，命令行输出坐标和归一化坐标
+"""
+
 import cv2
 
 from lib import Video
@@ -33,7 +37,7 @@ def getMouse(event, x, y, flags, param):
         print()
 
 
-cap = Video.CaptureInit()
+cap = Video.CaptureInit(0, PI_MODE=False)
 
 cv2.namedWindow('video', cv2.WINDOW_AUTOSIZE)
 cv2.setMouseCallback("video", getMouse)

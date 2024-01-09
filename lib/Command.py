@@ -3,13 +3,13 @@
 """
 
 
-class Para:
-    def __init__(self, initialValue, maxP=1., minP=0., resetFunc = None) -> None:
-        self.value = initialValue
+class Para:  # 参数类，推荐将参数类汇总为字典进行使用
+    def __init__(self, initialValue, maxP=1., minP=0., resetFunc=None) -> None:
+        self.value = initialValue  # 初始值
         self.initValue = initialValue
-        self.max = maxP
+        self.max = maxP  # 极大值限制
         self.min = minP
-        self.resetFunc = resetFunc
+        self.resetFunc = resetFunc  # 重置函数
 
     def reSet(self):
         "重置参数"
@@ -19,7 +19,7 @@ class Para:
             self.resetFunc(self.value)
 
     def refrash(self, op, step: float):
-        "更新参数"
+        "更新参数，根据op对参数进行步长为step的一次更新"
         if op == '+':
             self.value += step
             if self.value > self.max:
@@ -71,7 +71,11 @@ def makeCommand(prefix: str, *contents) -> str:
 
 
 def whatItems(contect: str, prefix: str, number: int):
-    "解析形如‘Axxx’的数据，其中A为前导符prefix， 后跟数据number位，直接返回字符串"
+    """
+    解析形如‘Axxx’的数据，其中A为前导符prefix，
+    后跟数据number位（若number为0则检测contect中是否存在prefix，返回布尔值），
+    若成功直接返回字符串
+    """
     index = contect.find(prefix)
     if index == -1:
         if number == 0:
@@ -86,7 +90,8 @@ def whatItems(contect: str, prefix: str, number: int):
 
 
 def int2str(number: int, digit: int) -> str:
-    "将数字转化为X-XXX格式，有效数字部分位数为digit，不足用0补齐，多出不考虑"
+    """将数字转化为X-XXX格式(-不在转换结果内)，第一位数字表示为正负，后续数字为有效数字；
+    有效数字部分位数为digit，不足用0补齐，多出不考虑"""
     data = ''
     # 判断正负，正为‘1’，负为‘0’
     if number < 0:
@@ -108,7 +113,11 @@ def bool2str(judge: bool) -> str:
 
 
 def dataTreatment(*data) -> str:
-    "将数据转化为待发送字符串，None用X占位"
+    """
+    将数据转化为待发送字符串，None用X占位
+    参数输入不限个数
+    参数输入要求格式为元组：(a,b)，其中a代表待发送数据的值，b代表发送占用位数
+    """
     con = ''
     for datum in data:
         if datum[0] is None:

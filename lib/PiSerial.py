@@ -22,7 +22,7 @@ class PiSerial(serial.Serial):
         self.write(data.encode('ascii'))
 
     def serialRead(self, ifPrint=False) -> str:
-        "从串口接收信息（非阻塞），无信息return none，多字符存在接收不全的情况"
+        "从串口接收信息（非阻塞），无信息return none，多字符存在一次接收不全的情况，推荐使用serialReadStr"
         recv = self.inWaiting()
         if recv > 0:
             data = self.read(recv).decode('ascii', 'ignore')

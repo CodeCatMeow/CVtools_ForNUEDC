@@ -1,3 +1,7 @@
+"""
+工具：点击屏幕显示坐标，命令行输出坐标和归一化坐标，按下退格键清零
+"""
+
 import cv2
 
 from lib import Video

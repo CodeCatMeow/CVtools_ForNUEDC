@@ -1,15 +1,22 @@
 """
 车辆循迹常用函数
+
+本文件包含了：
+采样类Sample及其方法
+获取多个采样行/列的有效重心到行/列中心的像素距离并将其加权求和的方法getDistance
+多个采样行/列的有效重心拟合直线的方向向量获取函数getLineSlope
 """
 
 import cv2
 import numpy as np
 
 
-class Sample:
+class Sample:  # 视野采集样本类
+    # 类型区别，用于采样模式选择
     SAMPLE_ROW = 0
     SAMPLE_COLUMN = 1
 
+    # 本轮检测结果无效时是否保持旧数据，用于模式选择
     VALUE_KEEPOLD = 0
     VALUE_NOTKEEPOLD = 1
 
@@ -19,12 +26,12 @@ class Sample:
                  *,
                  maxRatio=1.,
                  minRatio=0.) -> None:
-        self.position = position
-        self.weight = weight
+        self.position = position  # 位置
+        self.weight = weight  # 权重
         self.value = 0  # 记录目的数据
-        self.existence = False
-        self.ratioUpper = maxRatio
-        self.ratioLower = minRatio
+        self.existence = False  # 数据有效性
+        self.ratioUpper = maxRatio  # 占比上限
+        self.ratioLower = minRatio  # 占比下限
 
     def checkBeing(self, image: np.ndarray, samplizeMode=SAMPLE_ROW) -> bool:
         "检查图像采样位置是否存在有效值"
@@ -35,7 +42,7 @@ class Sample:
             row = image[y, :]
             index = np.nonzero(row)
             if index[0].size == 0:  # 若未检测到
-                self.existence = False
+                self.existence = False  # 这里实际完成存在性/有效性设置
                 return False
             else:
                 self.existence = True
@@ -55,7 +62,7 @@ class Sample:
                     image: np.ndarray,
                     samplizeMode=SAMPLE_ROW,
                     valueHandleMode=VALUE_NOTKEEPOLD):
-        "计算采样行/列的中心点（白色部分）,仅适用于单通道图像"
+        "计算采样行/列的有效区域中心点（白色部分，若采集黑色部分可以图片反色输入q）,仅适用于单通道图像"
         Height = image.shape[0]  # size[0]为高度
         Width = image.shape[1]  # size[1]为宽度
         if samplizeMode == self.SAMPLE_ROW:  # 行采样
@@ -65,7 +72,7 @@ class Sample:
             lengthUpper = int(self.ratioUpper * Width)
             lengthLower = int(self.ratioLower * Width)
             if index[0].size <= lengthLower or index[
-                    0].size >= lengthUpper:  # 若未检测到或者检测处于范围之外
+                    0].size >= lengthUpper:  # 若未检测到或者检测有效区域处于设定范围之外
                 self.existence = False
                 if valueHandleMode == self.VALUE_NOTKEEPOLD:
                     x = int(Width / 2)
@@ -103,7 +110,7 @@ class Sample:
 
     def drawPoint(self,
                   image: np.ndarray,
-                  mode,
+                  mode,  # 行列采样模式
                   color=(70, 0, 0),
                   radius=6,
                   circlewidth=-1):
@@ -143,10 +150,12 @@ def getDistance(frame: np.ndarray,
                 ifPrint=False) -> int:
     """
     获取位置偏移量作为反馈量\\
-    第一个参数为已经二值化的待处理帧(引导线处理为255，其他部分处理为0)，第二个参数作为归一化后的y轴采样位置和对应权重\\
+    第一个参数为已经二值化的待处理帧(引导线处理为255，其他部分处理为0)\\
+    第二个参数作为归一化后的y轴采样位置和对应权重\\
     shifting为另设偏移量，采取归一化数值
-    mode为0为行采样，mode为1为列采样\\
-    返回参数为像素点数
+    mode为0为行采样，mode为1为列采样(建议使用采样类预设变量)\\
+    返回距离单位为像素点数\\
+    默认不进行绘制和命令行输出
     """
     result = 0
     Height = frame.shape[0]  # size[0]为高度
