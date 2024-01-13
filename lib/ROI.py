@@ -44,7 +44,7 @@ class ROI:
             return True
 
     def getRatio(self, *, isNone=False):
-        "返回ROI内某一白色或者黑色像素的占比"
+        "返回ROI内某一白色或者黑色像素的占比，isNone是否取反"
         num = cv2.countNonZero(self.ROI)
         ratio = num / (self.height * self.width)
         if isNone:

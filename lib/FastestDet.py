@@ -7,17 +7,19 @@ import os
 import cv2
 import numpy as np
 
-from ROI import ROI
+print(os.sys.path)
+
+from lib.ROI import ROI
 
 
 def sigmoid(x):
     "sigmoid函数"
-    return 1. / (1 + np.exp(-x))
+    return 1.0 / (1 + np.exp(-x))
 
 
 def tanh(x):
     "tanh函数"
-    return 2. / (1 + np.exp(-2 * x)) - 1
+    return 2.0 / (1 + np.exp(-2 * x)) - 1
 
 
 class DetOutput:
@@ -52,44 +54,64 @@ class DetOutput:
         y2a = int(self.y2 * imageWidth)
         return (cxa, cya), (x1a, y1a), (x2a, y2a)
 
-    def draw(self,
-             image: np.ndarray,
-             color=(180, 0, 0),
-             radius=4,
-             textwidth=2,
-             circlewidth=-1):
+    def draw(
+        self,
+        image: np.ndarray,
+        color=(180, 0, 0),
+        radius=4,
+        textwidth=2,
+        circlewidth=-1,
+        rowHeight=20,
+    ):
         "绘出检测结果于image中"
         center, _, _ = self.actualize(image)
         cv2.circle(image, center, radius, color, circlewidth)
-        cv2.putText(image, '%.2f' % self.score,
-                    (center[0], center[1] - radius), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7, color, textwidth)
-        cv2.putText(image, self.className, (center[0], center[1] - radius),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, textwidth)
+        cv2.putText(
+            image,
+            "%.2f" % self.score,
+            (center[0], center[1] - radius),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            color,
+            textwidth,
+        )
+        cv2.putText(
+            image,
+            "\'%s\'" % self.className,
+            (center[0], center[1] - radius - rowHeight),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            color,
+            textwidth,
+        )
 
 
 class FastestDet:
     "使用OpenCV调用ONNX格式的FastestDet神经网络"
 
-    def __init__(self,
-                 inputWidth: int,
-                 inputHeight: int,
-                 confThreshold: float = 0.5,
-                 nmsThreshold: float = 0.4,
-                 ifDrawOutput: bool = False) -> None:
+    def __init__(
+        self,
+        inputWidth: int,
+        inputHeight: int,
+        path: str,
+        confThreshold: float = 0.5,
+        nmsThreshold: float = 0.4,
+        ifDrawOutput: bool = False,
+    ) -> None:
         """
         inputWidth: 输入图片宽
         inputHeight: 输入图片长
+        path: 模型目录
         confThreshold: 置信度阈值
         nmsThreshold: 非极大值抑制阈值
         """
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            "models")
+        # path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+        #                     "models")
         path_names = os.path.join(path, "category.names")  # 识别类别
         path_onnx = os.path.join(path, "FastestDet.onnx")
         self.classes = list(
-            map(lambda x: x.strip(),
-                open(path_names, "r").readlines()))
+            map(lambda x: x.strip(), open(path_names, "r").readlines())
+        )
         self.inputWidth = inputWidth
         self.inputHeight = inputHeight
         self.net = cv2.dnn.readNet(path_onnx)
@@ -100,20 +122,24 @@ class FastestDet:
 
     def __imageFormat(self, image: np.ndarray) -> np.ndarray:
         "输入图像与模型接口的对齐预处理"
-        output = cv2.resize(image.astype(np.float32),
-                            (self.inputWidth, self.inputHeight),
-                            interpolation=cv2.INTER_AREA)
+        output = cv2.resize(
+            image.astype(np.float32),
+            (self.inputWidth, self.inputHeight),
+            interpolation=cv2.INTER_AREA,
+        )
         output = output.transpose(2, 0, 1)  # 调换通道
-        result = output.reshape(
-            (1, 3, self.inputHeight, self.inputWidth)) / 255.
-        return result.astype('float32')
+        result = (
+            output.reshape((1, 3, self.inputHeight, self.inputWidth)) / 255.0
+        )
+        return result.astype("float32")
 
     def __nms(self, dets) -> list:
         """
         非极大值抑制
         dets: [[x1, y1, x2, y2, score, ...], [x1, y1, x2, y2, score, ...], ...]
         """
-        if self.outputlist.shape[0] == 0:
+        if dets.shape[0] == 0:
+            # if len(self.outputlist) == 0:
             return []
         x1 = dets[:, 0]
         y1 = dets[:, 1]
@@ -186,28 +212,47 @@ class FastestDet:
                     box_cy = (h + y_offset) / feature_map_height
 
                     # cx,cy,w,h => x1, y1, x2, y2
-                    x1, y1 = box_cx - 0.5 * box_width, box_cy - 0.5 * box_height
-                    x2, y2 = box_cx + 0.5 * box_width, box_cy + 0.5 * box_height
+                    x1, y1 = (
+                        box_cx - 0.5 * box_width,
+                        box_cy - 0.5 * box_height,
+                    )
+                    x2, y2 = (
+                        box_cx + 0.5 * box_width,
+                        box_cy + 0.5 * box_height,
+                    )
 
                     # 获取标签名
-                    className = self.classes[int(class_index)]
+                    # className = self.classes[int(class_index)]
 
                     predictions.append(
-                        [x1, y1, x2, y2, score, className, box_cx, box_cy])
+                        [x1, y1, x2, y2, score, class_index, box_cx, box_cy]
+                    )
 
         output = self.__nms(np.array(predictions))
         self.outputlist.clear()
         return list(
             map(
-                lambda x: DetOutput(x[6], x[7], x[0], x[1], x[2], x[3], x[4],
-                                    x[5]), output))
+                lambda x: DetOutput(
+                    x[6],
+                    x[7],
+                    x[0],
+                    x[1],
+                    x[2],
+                    x[3],
+                    x[4],
+                    self.classes[int(x[5])],
+                ),
+                output,
+            )
+        )
 
     def putout(self, image: np.ndarray) -> list:
         "输出检测结果，输入待测帧，输出结果为元素为DetOutput类的列表，已经经过后处理和预处理"
         # 模型推理
         self.net.setInput(self.__imageFormat(image))
-        featureMap = self.net.forward(
-            self.net.getUnconnectedOutLayersNames())[0][0]
+        featureMap = self.net.forward(self.net.getUnconnectedOutLayersNames())[
+            0
+        ][0]
 
         # 特征图后处理
         self.outputlist = self.__postProssing(featureMap)
@@ -224,7 +269,8 @@ class FastestDet:
 
         for i in range(0, len(self.outputlist)):
             if not ROI.isInside(
-                (self.outputlist[i].cx, self.outputlist[i].cy)):
+                (self.outputlist[i].cx, self.outputlist[i].cy)
+            ):
                 index.append(i)
 
         index.sort(reverse=True)

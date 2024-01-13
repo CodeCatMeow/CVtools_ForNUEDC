@@ -1,5 +1,5 @@
 {
-    "python.linting.flake8Enabled": true,
+    // "python.linting.flake8Enabled": true,
     "python.formatting.provider": "yapf",
     "python.linting.flake8Args": ["--max-line-length=248"],
     "python.linting.pylintEnabled": false,
@@ -18,5 +18,9 @@
         // "C:\\Users\\jiuyi\\.conda\\envs\\pyTorch\\Scripts"
     ],
     "vsintellicode.features.python.deepLearning": "enabled",
-    "python.jediEnabled": false
+    "files.insertFinalNewline": false,
+    "files.trimTrailingWhitespace": true,
+    "black-formatter.args": [
+        "-l 79"
+    ]
 }

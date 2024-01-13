@@ -17,8 +17,9 @@ def countArea(height, width, contour) -> int:
     return cv2.countNonZero(fill)
 
 
-def inAreaRange(image: np.ndarray, contours: list, maxArea, minArea,
-                mode) -> list:
+def inAreaRange(
+    image: np.ndarray, contours: list, maxArea, minArea, mode
+) -> list:
     "将轮廓列表contours中面积处于上下阈值内的轮廓提取出来"
     succ = []
     if mode == AREA_COUNT_MODE:
@@ -42,10 +43,10 @@ def inAreaRange(image: np.ndarray, contours: list, maxArea, minArea,
 def getCenter(contour):
     "计算轮廓重心"
     moment = cv2.moments(contour)
-    if moment['m00'] == 0:
+    if moment["m00"] == 0:
         return None
-    cx = int(moment['m10'] / moment['m00'])
-    cy = int(moment['m01'] / moment['m00'])
+    cx = int(moment["m10"] / moment["m00"])
+    cy = int(moment["m01"] / moment["m00"])
     return (cx, cy)
 
 
