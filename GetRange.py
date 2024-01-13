@@ -12,9 +12,9 @@ def nothing(x):
     pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cap = Video.CaptureInit(PI_MODE=False)
-    video = Video.TrackWindow('video', 'value', 82, 255)
+    video = Video.TrackWindow("video", "value", 82, 255)
     # cv2.createTrackbar('value', 'video', 82, 255, nothing)
     while True:
         _, frame = cap.read()
@@ -28,9 +28,9 @@ if __name__ == '__main__':
         # cv2.imshow('video', blackPart)
         video.show(blackPart)
 
-        content = cv2.waitKey(1) & 0xff
+        content = cv2.waitKey(1) & 0xFF
         if content == 27:  # Esc
-            print('exit!')
+            print("exit!")
             break
 
     cv2.destroyAllWindows()

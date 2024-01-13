@@ -12,9 +12,9 @@ from lib import Video
 #     pass
 
 
-def CaptureInit(width: int = 640,
-                height: int = 480,
-                PI_MODE=True) -> cv2.VideoCapture:
+def CaptureInit(
+    width: int = 640, height: int = 480, PI_MODE=True
+) -> cv2.VideoCapture:
     "摄像头配置和打开"
     if PI_MODE:
         capture = cv2.VideoCapture(0)
@@ -32,9 +32,9 @@ def CaptureInit(width: int = 640,
     return capture
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cap = CaptureInit(PI_MODE=False)
-    video = Video.TrackWindow('video', 'value', 50, 100)
+    video = Video.TrackWindow("video", "value", 50, 100)
     Video.printVideoPara(cap)
 
     while True:
@@ -48,9 +48,9 @@ if __name__ == '__main__':
 
         video.show(frame)
 
-        content = cv2.waitKey(1) & 0xff
+        content = cv2.waitKey(1) & 0xFF
         if content == 27:  # Esc
-            print('exit!')
+            print("exit!")
             break
     cap.release()
     cv2.destroyAllWindows()

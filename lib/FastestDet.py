@@ -77,7 +77,7 @@ class DetOutput:
         )
         cv2.putText(
             image,
-            "\'%s\'" % self.className,
+            "'%s'" % self.className,
             (center[0], center[1] - radius - rowHeight),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.7,
