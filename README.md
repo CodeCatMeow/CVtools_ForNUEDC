@@ -32,9 +32,10 @@
 
 本项目基于树莓派4B和工业摄像头，需要与上位机进行通信（项目使用STM32进行实践）。
 
-- 树莓派4B需要预装python及相关包。已验证如下版本可以运行。
+- 树莓派4B需要预装python及相关包。
+  - opencv
+- 个人电脑已验证如下版本可以运行。
   - opencv-python==4.9.0.80
-  - pytorch=2.0.1=py3.11_cpu_0
 - 使用[FastestDet](https://github.com/dog-qiuqiu/FastestDet)进行目标识别，模型需要自行训练并导出ONNX格式。
 
 需要指出的是，若载入ONNX网络时出现类似下面的错误：
