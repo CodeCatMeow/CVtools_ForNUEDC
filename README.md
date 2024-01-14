@@ -18,6 +18,7 @@
     - [工具代码](#工具代码)
   - [使用示例](#使用示例)
 - [相关仓库](#相关仓库)
+- [贡献](#贡献)
 - [使用许可](#使用许可)
 
 <!-- /code_chunk_output -->
@@ -122,6 +123,14 @@ error: OpenCV(x.x.x) Error: Number of input channels should be multiple of 24 bu
 ## 相关仓库
 
 [⚡FastestDet⚡](https://github.com/dog-qiuqiu/FastestDet?tab=readme-ov-file) — 全新设计的超实时Anchor-free目标检测算法
+
+## 贡献
+
+本项目部分程序参考了互联网资料，同时也离不开华中科技大学电工电子科技创新基地的无私帮助。
+
+在此郑重感谢华中科技大学电工基地以及前辈们、同仁们的鼎力相助。
+
+本项目欢迎任何人进行补充。
 
 ## 使用许可
 
