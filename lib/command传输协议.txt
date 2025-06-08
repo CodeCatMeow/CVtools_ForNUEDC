@@ -1,0 +1,36 @@
+********树莓派和MCU主控的传输协议——command.py文件的说明*********
+
+每个命令前后使用‘(’‘)’进行间隔
+
+****  MCU->树莓派  ****
+
+---使用'_'将各个部分分隔开
+
+程序复位(Reset):将可变参数重置为初值
+'(RST)'
+
+参数更新(Refresh a Paramater):依照命令更改某个可变参数
+'(RFP_nameID_op_step)'
+RFP:参数更新命令的前导符
+nameID:修改参数的名称
+op:运算，'+'或者'-'
+step:步长
+
+自定义命令(Custom Commands)：根据不同题目所约定的自定义传输命令
+'(CTC_content)'
+CTC:前导符
+content:命令内容
+---库函数将直接返回命令内容，以便于程序划分
+
+****  树莓派->MCU  ****
+
+参数回传(Return a Parameter):
+'(RTP_nameID_value)'
+RTP:前导符
+nameID:参数名称
+value:参数数值
+
+数据发送(Data Sending):
+'(DSD_data)'
+DSD:前导符
+data:数据内容
